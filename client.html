@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text2SQL Query Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+        }
+        
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+        
+        .btn-clear {
+            background: #f0f0f0;
+            color: #333;
+            padding: 12px 20px;
+        }
+        
+        .btn-clear:hover {
+            background: #e0e0e0;
+        }
+        
+        .examples {
+            background: #f9f9f9;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .examples strong {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .example-item {
+            padding: 8px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 3px;
+            cursor: pointer;
+            color: #667eea;
+            transition: all 0.2s;
+        }
+        
+        .example-item:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .results {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        .results h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .result-section {
+            margin-bottom: 20px;
+        }
+        
+        .result-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .result-content {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #333;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-weight: 500;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f0f0f0;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #fee;
+            color: #c00;
+            padding: 12px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        
+        .success {
+            background: #efe;
+            color: #060;
+            padding: 12px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-badge.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Text2SQL Query Interface</h1>
+        <p class="subtitle">Convert natural language to SQL queries powered by Gemini AI</p>
+        
+        <div class="examples">
+            <strong>📝 Try These Examples:</strong>
+            <div class="example-item" onclick="setExample('Show me all customers')">Show me all customers</div>
+            <div class="example-item" onclick="setExample('What are the top 5 products?')">What are the top 5 products?</div>
+            <div class="example-item" onclick="setExample('How many orders are there?')">How many orders are there?</div>
+            <div class="example-item" onclick="setExample('List employees and their offices')">List employees and their offices</div>
+        </div>
+        
+        <form onsubmit="submitQuery(event)">
+            <div class="form-group">
+                <label for="query">Enter Your Query (Natural Language):</label>
+                <textarea id="query" placeholder="Example: Show me top 10 customers by order amount..." required></textarea>
+            </div>
+            
+            <div class="button-group">
+                <button type="submit" class="btn-submit">🚀 Execute Query</button>
+                <button type="button" class="btn-clear" onclick="clearForm()">Clear</button>
+            </div>
+            
+            <div class="loading" id="loading">
+                <span class="spinner"></span> Processing your query...
+            </div>
+        </form>
+        
+        <div id="results"></div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:8080';
+        
+        function setExample(text) {
+            document.getElementById('query').value = text;
+            document.getElementById('query').focus();
+        }
+        
+        function clearForm() {
+            document.getElementById('query').value = '';
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('query').focus();
+        }
+        
+        async function submitQuery(event) {
+            event.preventDefault();
+            
+            const query = document.getElementById('query').value;
+            const resultsDiv = document.getElementById('results');
+            const loading = document.getElementById('loading');
+            
+            if (!query.trim()) {
+                resultsDiv.innerHTML = '<div class="error">Please enter a query</div>';
+                return;
+            }
+            
+            loading.style.display = 'block';
+            resultsDiv.innerHTML = '';
+            
+            try {
+                const response = await fetch(`${API_URL}/query`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: query })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                displayResults(data, resultsDiv);
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="results">
+                        <div class="error">
+                            ❌ Error: ${error.message}
+                            <br><br>
+                            Make sure the API is running on port 8080:
+                            <br>
+                            <code>cd app && uvicorn main:app --reload --port 8080</code>
+                        </div>
+                    </div>
+                `;
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+        
+        function displayResults(data, container) {
+            const html = `
+                <div class="results">
+                    <h2>📊 Query Results</h2>
+                    
+                    <div class="result-section">
+                        <div class="result-title">Plan (Strategy):</div>
+                        <div class="result-content">${escapeHtml(data.plan || 'No plan generated')}</div>
+                    </div>
+                    
+                    <div class="result-section">
+                        <div class="result-title">Generated SQL:</div>
+                        <div class="result-content"><code>${escapeHtml(data.sql || 'No SQL generated')}</code></div>
+                    </div>
+                    
+                    <div class="result-section">
+                        <div class="result-title">Validation:
+                            <span class="status-badge ${data.is_valid ? '' : 'error'}">
+                                ${data.is_valid ? '✅ Valid' : '❌ Invalid'}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    ${data.execution_results && data.execution_results.success ? `
+                        <div class="result-section">
+                            <div class="result-title">Query Results (${data.execution_results.row_count || 0} rows):</div>
+                            <div class="result-content">${escapeHtml(JSON.stringify(data.execution_results.rows, null, 2))}</div>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="result-section">
+                        <div class="result-title">Answer:</div>
+                        <div class="result-content">${escapeHtml(data.final_answer || 'Unable to generate answer')}</div>
+                    </div>
+                    
+                    ${data.error ? `<div class="error">⚠️ Error: ${escapeHtml(data.error)}</div>` : ''}
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+        
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+        
+        // Check API connection on load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                if (!response.ok) throw new Error('API not healthy');
+            } catch (error) {
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        ⚠️ Cannot connect to API at ${API_URL}
+                        <br><br>
+                        Make sure to start the server:
+                        <br>
+                        <code>cd app && uvicorn main:app --reload --port 8080</code>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
