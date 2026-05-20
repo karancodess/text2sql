@@ -343,6 +343,4 @@ MIT License
 
 ---
 
-**Built with ❤️ by the AI Fellowship**
-
 *Last Updated: May 2026*
